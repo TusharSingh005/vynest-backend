@@ -1,7 +1,7 @@
 import { getRequiredEnv, validateRequiredEnv } from "../_lib/env";
 import { getDocument, setDocument } from "../_lib/firestore";
 import { jsonResponse, optionsResponse } from "../_lib/http";
-import { calculateBookingFee, isValidDateInput } from "../_lib/payment";
+import { isValidDateInput, resolveBookingAmount } from "../_lib/payment";
 
 export const onRequestOptions = async ({ env }) => optionsResponse(env);
 
@@ -39,7 +39,8 @@ export const onRequestPost = async ({ request, env }) => {
       return jsonResponse(env, 400, { error: "Invalid room selection" });
     }
 
-    const amount = calculateBookingFee(room.propertyType, selectedRoom.type);
+    const amountDecision = resolveBookingAmount({ room, selectedRoom, env });
+    const amount = amountDecision.amount;
 
     if (!amount) {
       return jsonResponse(env, 400, { error: "Unable to calculate booking fee" });
@@ -78,6 +79,8 @@ export const onRequestPost = async ({ request, env }) => {
       userId,
       roomId,
       amount,
+      amountSource: amountDecision.source,
+      formCode: amountDecision.formCode || null,
       moveInDate,
       roomPrice: selectedRoom.fee,
       occupancyIndex: String(parsedOccupancyIndex),
