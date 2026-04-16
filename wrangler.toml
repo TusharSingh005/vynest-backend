@@ -1,5 +1,5 @@
 name = "vynest-backend"
-compatibility_date = "2026-04-17"
+compatibility_date = "2024-10-01"
 main = "worker.js"
 
 [vars]
